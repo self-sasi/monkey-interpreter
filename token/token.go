@@ -35,3 +35,18 @@ const (
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 )
+
+// The keywords that exist in the language
+var languageKeywords = map[string]TokenType{
+	"let": LET,
+	"fn":  FUNCTION,
+}
+
+// Returns the [TokenType] for identifier if it is a language keyword.
+// If identifier is not a keyword, it returns [IDENT].
+func LookupIdentifier(identifier string) TokenType {
+	if tokenType, exists := languageKeywords[identifier]; exists {
+		return tokenType
+	}
+	return IDENT
+}
