@@ -9,6 +9,7 @@ type Token struct {
 	Literal string
 }
 
+// Token Types
 const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF" // end of file
@@ -18,8 +19,14 @@ const (
 	INT   = "INT"   // integers: 12345...
 
 	// Operators
-	ASSIGN = "="
-	PLUS   = "+"
+	ASSIGN   = "="
+	PLUS     = "+"
+	MINUS    = "-"
+	BANG     = "!"
+	ASTERISK = "*"
+	SLASH    = "/"
+	LT       = "<"
+	GT       = ">"
 
 	// Delimiters
 	COMMA     = ","
@@ -43,6 +50,7 @@ var languageKeywords = map[string]TokenType{
 }
 
 // Returns the [TokenType] for identifier if it is a language keyword.
+// For example, returns [PLUS] if the identifier is "+".
 // If identifier is not a keyword, it returns [IDENT].
 func LookupIdentifier(identifier string) TokenType {
 	if tokenType, exists := languageKeywords[identifier]; exists {
