@@ -41,12 +41,22 @@ const (
 	// Keywords
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	RETURN   = "RETURN"
 )
 
 // The keywords that exist in the language
 var languageKeywords = map[string]TokenType{
-	"let": LET,
-	"fn":  FUNCTION,
+	"let":    LET,
+	"fn":     FUNCTION,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
+	"return": RETURN,
 }
 
 // Returns the [TokenType] for identifier if it is a language keyword.
