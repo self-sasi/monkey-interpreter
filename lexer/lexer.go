@@ -40,6 +40,18 @@ func (lex *Lexer) readChar() {
 	lex.readPosition += 1
 }
 
+// Makes the [Lexer] peek the next char, i.e, return the char that exists at
+// [Lexer.char]'s [Lexer.readPosition] index. This function comes in handy
+// when checking whether a token is single-character length, or double. For
+// example, differentiating between "=" and "==".
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 // Makes the [Lexer] identify the next token, i.e, read the next char/chars &
 // classify it/them into a [token.Token] by identifying [token.TokenType].
 // Returns the [token.Token] which stores the literal value and token type.
@@ -50,7 +62,13 @@ func (lex *Lexer) NextToken() token.Token {
 
 	switch lex.char {
 	case '=':
-		tok = newToken(token.ASSIGN, lex.char)
+		if lex.peekChar() == '=' {
+			prevChar := lex.char
+			lex.readChar() // increment lex.position as it is a dual-char token
+			tok = newTwoCharToken(token.EQ, prevChar, lex.char)
+		} else {
+			tok = newToken(token.ASSIGN, lex.char)
+		}
 	case ';':
 		tok = newToken(token.SEMICOLON, lex.char)
 	case '(':
@@ -66,7 +84,13 @@ func (lex *Lexer) NextToken() token.Token {
 	case '}':
 		tok = newToken(token.RBRACE, lex.char)
 	case '!':
-		tok = newToken(token.BANG, lex.char)
+		if lex.peekChar() == '=' {
+			prevChar := lex.char
+			lex.readChar() // increment lex.position as it is a dual-char token
+			tok = newTwoCharToken(token.NOT_EQ, prevChar, lex.char)
+		} else {
+			tok = newToken(token.BANG, lex.char)
+		}
 	case '-':
 		tok = newToken(token.MINUS, lex.char)
 	case '*':
@@ -118,9 +142,15 @@ func (lex *Lexer) readNumber() string {
 	return lex.input[position:lex.position]
 }
 
-// Helper that creates a new token given the tokenType and ch (char)
+// Helper that creates a new token given the tokenType and ch (char).
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
+}
+
+// Helper that creates a new token with a two-char-length Literal value given the tokenType
+// and first and second characters.
+func newTwoCharToken(tokenType token.TokenType, firstCh byte, secondCh byte) token.Token {
+	return token.Token{Type: tokenType, Literal: string(firstCh) + string(secondCh)}
 }
 
 // Helper that determines if the given char is a letter.
