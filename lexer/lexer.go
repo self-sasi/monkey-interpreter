@@ -23,10 +23,10 @@ func New(input string) *Lexer {
 // For example:
 //
 //	someLexer := Lexer{
-//			input "xyz"
-//			position 0
-//			readPosition 1
-//			char "x"
+//			input: "xyz"
+//			position: 0
+//			readPosition: 1
+//			char: "x"
 //	}
 //
 //	someLexer.readChar() // position == 1, char == 'y'
