@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/self-sasi/monkey-interpreter/ast"
 	"github.com/self-sasi/monkey-interpreter/lexer"
 	"github.com/self-sasi/monkey-interpreter/token"
@@ -12,11 +14,15 @@ type Parser struct {
 	lex       *lexer.Lexer // source of tokens
 	curToken  token.Token  // current token under examination
 	peekToken token.Token  // next token (one-token lookahead)
+	errors    []string     // list of errors
 }
 
 // Creates and initializes a new Parser.
 func New(lex *lexer.Lexer) *Parser {
-	parserPointer := &Parser{lex: lex}
+	parserPointer := &Parser{
+		lex:    lex,
+		errors: []string{},
+	}
 
 	// read two tokens, so curToken and peekToken are both set
 	parserPointer.nextToken()
@@ -31,6 +37,17 @@ func New(lex *lexer.Lexer) *Parser {
 func (parser *Parser) nextToken() {
 	parser.curToken = parser.peekToken
 	parser.peekToken = parser.lex.NextToken()
+}
+
+// returns a slice of errors the parser records
+func (parser *Parser) Errors() []string {
+	return parser.errors
+}
+
+func (parser *Parser) peekError(expectedToken token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead",
+		expectedToken, parser.peekToken.Type)
+	parser.errors = append(parser.errors, msg)
 }
 
 func (parser *Parser) ParseProgram() *ast.Program {
@@ -91,6 +108,7 @@ func (parser *Parser) expectPeek(tok token.TokenType) bool {
 		parser.nextToken()
 		return true
 	} else {
+		parser.peekError(tok)
 		return false
 	}
 }
