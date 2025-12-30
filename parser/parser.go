@@ -74,13 +74,15 @@ func (parser *Parser) parseStatement() ast.Statement {
 	switch parser.curToken.Type {
 	case token.LET:
 		return parser.parseLetStatement()
+	case token.RETURN:
+		return parser.parseReturnStatement()
 	default:
 		return nil
 	}
 }
 
 // parses let statements and returns a [ast.LetStatement] node.
-// supposed to be called when [parser.curToken.Type] == [token.LET].
+// supposed to be called when parser.curToken.Type == [token.LET].
 func (parser *Parser) parseLetStatement() *ast.LetStatement {
 	letStatement := &ast.LetStatement{Token: parser.curToken}
 
@@ -125,4 +127,19 @@ func (parser *Parser) expectPeek(tok token.TokenType) bool {
 		parser.peekError(tok)
 		return false
 	}
+}
+
+// parses return statements and returns a [ast.ReturnStatement] node.
+// supposed to be called when parser.curToken.Type == [token.RETURN].
+func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
+	returnStatement := &ast.ReturnStatement{Token: parser.curToken}
+
+	parser.nextToken()
+
+	// TODO: skipping the expressions until encounter a semicolon
+	for !parser.curTokenIs(token.SEMICOLON) {
+		parser.nextToken()
+	}
+
+	return returnStatement
 }

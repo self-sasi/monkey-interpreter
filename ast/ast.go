@@ -47,7 +47,9 @@ type LetStatement struct {
 
 func (letStatement *LetStatement) statementNode() {}
 
-func (letStatement *LetStatement) TokenLiteral() string { return letStatement.Token.Literal }
+func (letStatement *LetStatement) TokenLiteral() string {
+	return letStatement.Token.Literal
+}
 
 // Represents an identifier expression (variable name) like "foo" in "let foo ...".
 type Identifier struct {
@@ -58,3 +60,15 @@ type Identifier struct {
 func (identifier *Identifier) expressionNode() {}
 
 func (identifier *Identifier) TokenLiteral() string { return identifier.Token.Literal }
+
+// Represents a `return` statement in the language, returning an expression.
+type ReturnStatement struct {
+	Token token.Token // the 'return' token
+	Value Expression  // the expression that is returned (e.g., 5, foo)
+}
+
+func (returnStatement *ReturnStatement) statementNode() {}
+
+func (returnStatement *ReturnStatement) TokenLiteral() string {
+	return returnStatement.Token.Literal
+}
