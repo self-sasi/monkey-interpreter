@@ -50,6 +50,9 @@ func (parser *Parser) peekError(expectedToken token.TokenType) {
 	parser.errors = append(parser.errors, msg)
 }
 
+// the engine function that parses the input program, constructs the
+// complete Abstract Syntax Tree and returns the root [ast.Program]
+// node.
 func (parser *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
@@ -65,6 +68,8 @@ func (parser *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
+// parses statements as per the current token type and returns a
+// [ast.Statement] node.
 func (parser *Parser) parseStatement() ast.Statement {
 	switch parser.curToken.Type {
 	case token.LET:
@@ -74,15 +79,19 @@ func (parser *Parser) parseStatement() ast.Statement {
 	}
 }
 
+// parses let statements and returns a [ast.LetStatement] node.
+// supposed to be called when [parser.curToken.Type] == [token.LET].
 func (parser *Parser) parseLetStatement() *ast.LetStatement {
 	letStatement := &ast.LetStatement{Token: parser.curToken}
 
+	// if the let is not immediately followed by an identifier, return nil
 	if !parser.expectPeek(token.IDENT) {
 		return nil
 	}
 
 	letStatement.Name = &ast.Identifier{Token: parser.curToken, Value: parser.curToken.Literal}
 
+	// if the identifier is not immediately followed by a =, return nil
 	if !parser.expectPeek(token.ASSIGN) {
 		return nil
 	}
@@ -95,14 +104,19 @@ func (parser *Parser) parseLetStatement() *ast.LetStatement {
 	return letStatement
 }
 
+// helper for checking the curToken type is the expected type.
 func (parser *Parser) curTokenIs(tok token.TokenType) bool {
 	return parser.curToken.Type == tok
 }
 
+// helper for checking the next token type is the expected type.
 func (parser *Parser) peekTokenIs(tok token.TokenType) bool {
 	return parser.peekToken.Type == tok
 }
 
+// helper that moves parser to next token, if the next token has the
+// expected token type. if successful, the function returns true,
+// else false.
 func (parser *Parser) expectPeek(tok token.TokenType) bool {
 	if parser.peekTokenIs(tok) {
 		parser.nextToken()
