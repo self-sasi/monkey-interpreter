@@ -8,9 +8,21 @@ import (
 	"github.com/self-sasi/monkey-interpreter/token"
 )
 
+// expression precedence related values
+const (
+	_ int = iota
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // > or <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -X or !X
+	CALL        // myFunction(X)
+)
+
 type (
-	prefixParseFn func() ast.Expression
-	infixParseFn  func(ast.Expression) ast.Expression
+	prefixParseFunction func() ast.Expression
+	infixParseFunction  func(ast.Expression) ast.Expression
 )
 
 // Parser transforms a stream of tokens produced by the lexer
@@ -21,8 +33,8 @@ type Parser struct {
 	peekToken token.Token  // next token (one-token lookahead)
 	errors    []string     // list of errors
 
-	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns  map[token.TokenType]infixParseFn
+	prefixParseFns map[token.TokenType]prefixParseFunction
+	infixParseFns  map[token.TokenType]infixParseFunction
 }
 
 // Creates and initializes a new Parser.
@@ -35,6 +47,9 @@ func New(lex *lexer.Lexer) *Parser {
 	// read two tokens, so curToken and peekToken are both set
 	parserPointer.nextToken()
 	parserPointer.nextToken()
+
+	parserPointer.prefixParseFns = make(map[token.TokenType]prefixParseFunction)
+	parserPointer.registerPrefix(token.IDENT, parserPointer.parseIdentifier)
 
 	return parserPointer
 }
@@ -58,11 +73,11 @@ func (parser *Parser) peekError(expectedToken token.TokenType) {
 	parser.errors = append(parser.errors, msg)
 }
 
-func (parser *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+func (parser *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFunction) {
 	parser.prefixParseFns[tokenType] = fn
 }
 
-func (parser *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+func (parser *Parser) registerInfix(tokenType token.TokenType, fn infixParseFunction) {
 	parser.infixParseFns[tokenType] = fn
 }
 
@@ -93,7 +108,7 @@ func (parser *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return parser.parseReturnStatement()
 	default:
-		return nil
+		return parser.parseExpressionStatement()
 	}
 }
 
@@ -158,4 +173,31 @@ func (parser *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	return returnStatement
+}
+
+func (parser *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	expStatement := &ast.ExpressionStatement{Token: parser.curToken}
+
+	expStatement.Expression = parser.parseExpression(LOWEST)
+
+	// optional semicolon so something like "5 + 5" can be typed in REPL
+	if parser.peekTokenIs(token.SEMICOLON) {
+		parser.nextToken()
+	}
+
+	return expStatement
+}
+
+func (parser *Parser) parseExpression(precedence int) ast.Expression {
+	prefixParseFn := parser.prefixParseFns[parser.curToken.Type]
+	if prefixParseFn == nil {
+		return nil
+	}
+
+	leftExp := prefixParseFn()
+	return leftExp
+}
+
+func (parser *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: parser.curToken, Value: parser.curToken.Literal}
 }
