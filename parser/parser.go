@@ -8,6 +8,11 @@ import (
 	"github.com/self-sasi/monkey-interpreter/token"
 )
 
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
+
 // Parser transforms a stream of tokens produced by the lexer
 // into an Abstract Syntax Tree (AST).
 type Parser struct {
@@ -15,6 +20,9 @@ type Parser struct {
 	curToken  token.Token  // current token under examination
 	peekToken token.Token  // next token (one-token lookahead)
 	errors    []string     // list of errors
+
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 // Creates and initializes a new Parser.
@@ -48,6 +56,14 @@ func (parser *Parser) peekError(expectedToken token.TokenType) {
 	msg := fmt.Sprintf("expected next token to be %s, got %s instead",
 		expectedToken, parser.peekToken.Type)
 	parser.errors = append(parser.errors, msg)
+}
+
+func (parser *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+	parser.prefixParseFns[tokenType] = fn
+}
+
+func (parser *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+	parser.infixParseFns[tokenType] = fn
 }
 
 // the engine function that parses the input program, constructs the
